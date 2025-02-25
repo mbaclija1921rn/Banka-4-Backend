@@ -1,4 +1,4 @@
-package rs.banka4.user_service.models;
+package rs.banka4.user_service.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
