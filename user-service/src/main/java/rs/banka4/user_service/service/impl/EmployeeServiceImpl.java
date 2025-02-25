@@ -1,6 +1,8 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +16,8 @@ import rs.banka4.user_service.models.Privilege;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
 import rs.banka4.user_service.utils.JwtUtil;
+import rs.banka4.user_service.utils.specification.EmployeeSpecification;
+import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -114,10 +118,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     public ResponseEntity<Void> createEmployee(CreateEmployeeDto dto) {
-        if(employeeRepository.existsByEmail(dto.email())) {
+        if (employeeRepository.existsByEmail(dto.email())) {
             throw new DuplicateEmail(dto.email());
         }
-        if(employeeRepository.existsByUsername(dto.username())) {
+        if (employeeRepository.existsByUsername(dto.username())) {
             throw new DuplicateUsername(dto.username());
         }
         Set<Privilege> validPrivileges = EnumSet.allOf(Privilege.class);
@@ -131,5 +135,39 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = basicEmployeeMapper.toEntity(dto);
         employeeRepository.save(employee);
         return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<Page<EmployeeDto>> getAll(String firstName, String lastName, String email, String position, PageRequest pageRequest) {
+        SpecificationCombinator<Employee> combinator = new SpecificationCombinator<>();
+
+        if (firstName != null && !firstName.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasFirstName(firstName));
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasLastName(lastName));
+        }
+        if (email != null && !email.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasEmail(email));
+        }
+        if (position != null && !position.isEmpty()) {
+            combinator.and(EmployeeSpecification.hasPosition(position));
+        }
+
+        Page<Employee> employees = employeeRepository.findAll(combinator.build(), pageRequest);
+        Page<EmployeeDto> dtos = employees.map(employee -> new EmployeeDto(
+                employee.getId(),
+                employee.getFirstName(),
+                employee.getLastName(),
+                employee.getDateOfBirth(),
+                employee.getGender(),
+                employee.getEmail(),
+                employee.getPhone(),
+                employee.getAddress(),
+                employee.getUsername(),
+                employee.getPosition(),
+                employee.getDepartment()
+        ));
+
+        return ResponseEntity.ok(dtos);
     }
 }

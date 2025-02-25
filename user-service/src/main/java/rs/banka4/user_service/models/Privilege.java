@@ -1,4 +1,4 @@
-package rs.banka4.user_service.entities;
+package rs.banka4.user_service.models;
 
 import org.springframework.security.core.GrantedAuthority;
 
