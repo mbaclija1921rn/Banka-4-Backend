@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.ClientDto;
+import rs.banka4.user_service.exceptions.NonexistantSortByField;
 import rs.banka4.user_service.mapper.ClientMapper;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.repositories.ClientRepository;
@@ -44,8 +45,7 @@ public class ClientServiceImpl implements ClientService {
         } else if ("email".equalsIgnoreCase(sortBy)) {
             sort = Sort.by("email");
         } else {
-            throw new IllegalArgumentException("Invalid sort parameter: " + sortBy);
-            // TODO Custom error mozda
+            throw new NonexistantSortByField(sortBy);
         }
 
         PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(),
