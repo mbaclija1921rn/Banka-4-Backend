@@ -96,8 +96,6 @@ public class ClientServiceTest {
                 .thenReturn(clientPage);
 
         ClientDto expectedDto = clientMapper.toDto(client);
-        System.out.println(expectedDto);
-
         ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, pageRequest);
 
         assertNotNull(response);
