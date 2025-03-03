@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.ClientDto;
 import rs.banka4.user_service.exceptions.NonexistantSortByField;
+import rs.banka4.user_service.exceptions.NullPageRequest;
 import rs.banka4.user_service.mapper.BasicClientMapper;
 import rs.banka4.user_service.mapper.ClientMapper;
 import rs.banka4.user_service.models.Client;
@@ -126,6 +127,45 @@ public class ClientServiceTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
+        assertTrue(response.getBody().getContent().isEmpty());
+    }
+
+    @Test
+    void testGetAllWithNullPageRequestThrowsException() {
+        assertThrows(NullPageRequest.class, () ->
+                clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", "firstName", null)
+        );
+    }
+
+    @Test
+    void testGetAllWithNonexistentFiltersReturnsEmpty() {
+        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("firstName"));
+        Page<Client> emptyPage = new PageImpl<>(Collections.emptyList(), pageRequestWithSort, 0);
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
+                .thenReturn(emptyPage);
+
+        ResponseEntity<Page<ClientDto>> response = clientService.getAll("Nonexistent", "Filter", "noemail@example.com", "firstName", pageRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().getTotalElements());
+        assertTrue(response.getBody().getContent().isEmpty());
+    }
+
+    @Test
+    void testGetAllWithPartialFiltersReturningEmpty() {
+        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("firstName"));
+        Page<Client> emptyPage = new PageImpl<>(Collections.emptyList(), pageRequestWithSort, 0);
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
+                .thenReturn(emptyPage);
+
+        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, "nomatch@example.com", "firstName", pageRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().getTotalElements());
         assertTrue(response.getBody().getContent().isEmpty());
     }
 }

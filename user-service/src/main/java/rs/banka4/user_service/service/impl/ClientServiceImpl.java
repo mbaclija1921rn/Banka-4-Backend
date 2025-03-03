@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.ClientDto;
 import rs.banka4.user_service.exceptions.NonexistantSortByField;
+import rs.banka4.user_service.exceptions.NullPageRequest;
 import rs.banka4.user_service.mapper.BasicClientMapper;
 import rs.banka4.user_service.mapper.ClientMapper;
 import rs.banka4.user_service.models.Client;
@@ -25,6 +26,10 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email,
                                                   String sortBy, PageRequest pageRequest) {
+        if (pageRequest == null) {
+            throw new NullPageRequest();
+        }
+
         SpecificationCombinator<Client> combinator = new SpecificationCombinator<>();
 
         if (firstName != null && !firstName.isEmpty()) {
