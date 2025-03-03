@@ -6,10 +6,5 @@ import rs.banka4.user_service.models.Client;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ClientMapper {
-    Client toEntity(ClientDto dto);
-
     ClientDto toDto(Client client);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateClientFromDto(ClientDto dto, @MappingTarget Client client);
 }

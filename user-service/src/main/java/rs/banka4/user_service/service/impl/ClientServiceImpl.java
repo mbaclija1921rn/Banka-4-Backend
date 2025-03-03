@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.dto.ClientDto;
 import rs.banka4.user_service.exceptions.NonexistantSortByField;
+import rs.banka4.user_service.mapper.BasicClientMapper;
 import rs.banka4.user_service.mapper.ClientMapper;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.repositories.ClientRepository;
@@ -19,7 +20,7 @@ import rs.banka4.user_service.utils.specification.SpecificationCombinator;
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
-    private final ClientMapper clientMapper;
+    private final ClientMapper clientMapper = new BasicClientMapper();
 
     @Override
     public ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email,

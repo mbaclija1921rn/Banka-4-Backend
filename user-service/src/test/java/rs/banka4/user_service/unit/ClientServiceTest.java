@@ -8,10 +8,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import rs.banka4.user_service.dto.ClientDto;
 import rs.banka4.user_service.exceptions.NonexistantSortByField;
+import rs.banka4.user_service.mapper.BasicClientMapper;
 import rs.banka4.user_service.mapper.ClientMapper;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.repositories.ClientRepository;
@@ -32,23 +34,23 @@ public class ClientServiceTest {
     @Mock
     private ClientRepository clientRepository;
 
-    @Mock
-    private ClientMapper clientMapper;
 
     @InjectMocks
     private ClientServiceImpl clientService;
+
+    private ClientMapper clientMapper;
 
     private Client client;
     private PageRequest pageRequest;
 
     @BeforeEach
     void setUp() {
+        clientMapper = new BasicClientMapper();
         pageRequest = PageRequest.of(0, 10);
 
         Set<String> linkedAccounts = new HashSet<>();
         linkedAccounts.add("265000000000123456");
 
-        // Prepare a sample Client
         client = new Client();
         client.setId("1");
         client.setFirstName("Djovak");
@@ -60,24 +62,22 @@ public class ClientServiceTest {
         client.setAddress("123 Grove Street, City, Country");
         client.setEnabled(true);
         client.setLinkedAccounts(linkedAccounts);
+
+        clientRepository.save(client);
     }
 
     @Test
     void testGetAllWithFilters() {
         Page<Client> clientPage = new PageImpl<>(Collections.singletonList(client), pageRequest, 1);
-        // Expected sort: default sort is by "firstName"
         PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("firstName"));
-        // Use generic matcher for Specification<Client> to avoid unchecked warnings
-        when(clientRepository.findAll(ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<Client>>any(), eq(pageRequestWithSort)))
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
                 .thenReturn(clientPage);
 
-        // Expected DTO produced by the real mapper
         ClientDto expectedDto = clientMapper.toDto(client);
 
         ResponseEntity<Page<ClientDto>> response = clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", "firstName", pageRequest);
 
         assertNotNull(response);
-        // Use HttpStatus.OK instead of comparing numeric values
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getTotalElements());
@@ -96,6 +96,7 @@ public class ClientServiceTest {
                 .thenReturn(clientPage);
 
         ClientDto expectedDto = clientMapper.toDto(client);
+        System.out.println(expectedDto);
 
         ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, null, pageRequest);
 
@@ -109,7 +110,6 @@ public class ClientServiceTest {
 
     @Test
     void testGetAllWithInvalidSort() {
-        // An invalid sortBy parameter should throw a NonexistantSortByField exception
         assertThrows(NonexistantSortByField.class, () ->
                 clientService.getAll("Djovak", "Nokovic", "djovaknokovic@example.com", "invalidSort", pageRequest)
         );
