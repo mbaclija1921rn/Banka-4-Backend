@@ -38,7 +38,7 @@ public class Currency {
     @Enumerated(EnumType.STRING)
     private Code code;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "currency_countries", joinColumns = @JoinColumn(name = "currency_id"))
     @Column(name = "country")
     @Builder.Default
