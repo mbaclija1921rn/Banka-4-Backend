@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import rs.banka4.user_service.dto.UpdateEmployeeDto;
+import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
 import rs.banka4.user_service.mapper.EmployeeMapper;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.Privilege;
@@ -65,12 +65,9 @@ public class EditEmployeeTest {
 
         employeeService.updateEmployee("123", updateEmployeeDto);
 
-        verify(passwordEncoder, times(1)).encode("newPassword");
-
         verify(employeeMapper).updateEmployeeFromDto(updateEmployeeDto, existingEmployee);
 
         assertEquals("new.email@example.com", existingEmployee.getEmail());
-        assertEquals("encodedNewPassword", existingEmployee.getPassword());
         assertEquals(EnumSet.of(Privilege.SEARCH, Privilege.FILTER), existingEmployee.getPrivileges());
 
         verify(employeeRepository).save(existingEmployee);

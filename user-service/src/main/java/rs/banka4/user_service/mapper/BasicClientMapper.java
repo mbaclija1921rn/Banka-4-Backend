@@ -1,7 +1,9 @@
 package rs.banka4.user_service.mapper;
 
+import rs.banka4.user_service.dto.AccountDto;
 import rs.banka4.user_service.dto.ClientDto;
 import rs.banka4.user_service.models.Client;
+import java.util.List;
 
 public class BasicClientMapper implements ClientMapper {
 
@@ -10,6 +12,12 @@ public class BasicClientMapper implements ClientMapper {
         if (client == null) {
             return null;
         }
+        BasicAccountMapper basicAccountMapper = new BasicAccountMapper();
+        List<AccountDto> accountDtos = client.getAccounts()
+                .stream()
+                .map(basicAccountMapper::toDto)
+                .toList();
+
         return new ClientDto(
                 client.getId(),
                 client.getFirstName(),
@@ -19,8 +27,8 @@ public class BasicClientMapper implements ClientMapper {
                 client.getEmail(),
                 client.getPhone(),
                 client.getAddress(),
-                client.isEnabled(),
-                client.getLinkedAccounts()
+                client.getPrivileges(),
+                accountDtos
         );
     }
 }

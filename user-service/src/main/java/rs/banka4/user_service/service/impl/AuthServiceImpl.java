@@ -13,8 +13,10 @@ import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotFound;
 import rs.banka4.user_service.exceptions.VerificationCodeExpiredOrInvalid;
 import rs.banka4.user_service.exceptions.jwt.RefreshTokenRevoked;
+import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.models.VerificationCode;
+import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.service.abstraction.AuthService;
 import rs.banka4.user_service.service.abstraction.EmployeeService;
@@ -32,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final VerificationCodeService verificationCodeService;
     private final RabbitTemplate rabbitTemplate;
     private final EmployeeService employeeService;
+    private final ClientRepository clientRepository;
 
     @Override
     public ResponseEntity<Void> logout(LogoutDto logoutDto) {
@@ -44,13 +47,24 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<RefreshTokenResponseDto> refreshToken(String token) {
         String username = jwtUtil.extractUsername(token);
-
+        String role = jwtUtil.extractRole(token);
         if (jwtUtil.isTokenInvalidated(token)) {
             throw new RefreshTokenRevoked();
         }
 
-        Employee employee = employeeRepository.findByEmail(username).orElseThrow(IncorrectCredentials::new);
-        String newAccessToken = jwtUtil.generateToken(employee);
+        String newAccessToken;
+
+        if (role.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
+        if (role.equals("employee")) {
+            Employee employee = employeeRepository.findByEmail(username).orElseThrow(IncorrectCredentials::new);
+            newAccessToken = jwtUtil.generateToken(employee);
+        } else {
+            Client client = clientRepository.findByEmail(username).orElseThrow(NotFound::new);
+            newAccessToken = jwtUtil.generateToken(client);
+        }
 
         RefreshTokenResponseDto response = new RefreshTokenResponseDto(newAccessToken);
 

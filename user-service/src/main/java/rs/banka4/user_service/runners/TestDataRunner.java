@@ -4,11 +4,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.models.Employee;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.repositories.EmployeeRepository;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Profile({"dev"})
 @Component
@@ -67,6 +69,26 @@ public class TestDataRunner implements CommandLineRunner {
                     .build();
 
             employeeRepository.save(newUser);
+        }
+
+        String newClientEmail = "mkarisik@raf.rs";
+
+        if (!clientRepository.existsByEmail(newClientEmail)) {
+            Client newClient = Client.builder()
+                    .firstName("Mehmedalija")
+                    .lastName("Karisik")
+                    .dateOfBirth(LocalDate.of(2001, 1, 1))
+                    .gender("Male")
+                    .email(newClientEmail)
+                    .phone("381062323929292")
+                    .address("456 Elm St")
+                    .password(passwordEncoder.encode("qwerty123"))
+                    .accounts(Set.of())
+                    .contacts(Set.of())
+                    .enabled(true)
+                    .build();
+
+            clientRepository.save(newClient);
         }
     }
 }

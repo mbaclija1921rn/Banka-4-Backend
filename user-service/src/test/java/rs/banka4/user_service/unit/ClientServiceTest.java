@@ -16,6 +16,7 @@ import rs.banka4.user_service.exceptions.NonexistantSortByField;
 import rs.banka4.user_service.exceptions.NullPageRequest;
 import rs.banka4.user_service.mapper.BasicClientMapper;
 import rs.banka4.user_service.mapper.ClientMapper;
+import rs.banka4.user_service.models.Account;
 import rs.banka4.user_service.models.Client;
 import rs.banka4.user_service.repositories.ClientRepository;
 import rs.banka4.user_service.service.impl.ClientServiceImpl;
@@ -62,7 +63,7 @@ public class ClientServiceTest {
         client.setPhone("+1234567890");
         client.setAddress("123 Grove Street, City, Country");
         client.setEnabled(true);
-        client.setLinkedAccounts(linkedAccounts);
+        client.setAccounts(new HashSet<Account>());
 
         clientRepository.save(client);
     }

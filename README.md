@@ -43,8 +43,7 @@ The aforementioned files are already ignored.
 > developer machines, which are very annoying.
 
 ### Swagger UI
-A Swagger UI for the user service is available on `/docs/swagger-ui` on the
-usual port.
+A Swagger UI for the user service is available on `/docs/ui` on the usual port.
 
 ## Writing migrations
 This project uses

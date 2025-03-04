@@ -1,30 +1,32 @@
 package rs.banka4.user_service.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
+import rs.banka4.user_service.models.Privilege;
 import java.time.LocalDate;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
-@Schema(description = "DTO for returned clients in response")
 public record ClientDto(
-        @Schema(description = "Client's id", example = "1de54a3a-d879-4154-aa3a-e40598186f93")
+        @Schema(description = "Client ID", example = "1fad2c01-f82f-41a6-822c-8ca1b3232575")
         String id,
-        @Schema(description = "Client's first name", example = "Djovak")
+        @Schema(description = "First name", example = "Mehmedalija")
         String firstName,
-        @Schema(description = "Client's last name", example = "Nokovic")
+        @Schema(description = "Last name", example = "Doe")
         String lastName,
-        @Schema(description = "Client's date of birth", example = "1990-05-15")
+        @Schema(description = "Date of birth", example = "1990-01-01")
         LocalDate dateOfBirth,
-        @Schema(description = "Client's gender", example = "Male")
+        @Schema(description = "Gender", example = "Male")
         String gender,
-        @Schema(description = "Client's email address", example = "djovaknokovic@example.com")
+        @Schema(description = "Email address", example = "danny.jo@example.com")
         String email,
-        @Schema(description = "Client's phone number", example = "+1234567890")
+        @Schema(description = "Phone number", example = "123-456-7890")
         String phone,
-        @Schema(description = "Client's address", example = "123 Grove Street, City, Country")
+        @Schema(description = "Address", example = "123 Main St")
         String address,
-        @Schema(description = "Indicates if the client is active", example = "true")
-        boolean enabled,
-        @Schema(description = "Client's linked accounts", example = "[\"265000000000123456\"]")
-        Set<String> linkedAccounts
-) { }
+        @Schema(description = "List of privileges", example = "[\"ADMIN\"]")
+        EnumSet<Privilege> privileges,
+        @Schema(description = "List of accounts associated with the client")
+        List<AccountDto> accounts
+) {
+}

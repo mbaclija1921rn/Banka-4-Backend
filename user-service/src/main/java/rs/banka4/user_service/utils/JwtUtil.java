@@ -86,8 +86,11 @@ public class JwtUtil {
         return generateToken(claims, new SecuredUser(employee), jwtExpiration);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails, refreshExpiration);
+    public String generateRefreshToken(UserDetails userDetails, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
+
+        return generateToken(claims, userDetails, refreshExpiration);
     }
 
     public String generateToken(

@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
+import rs.banka4.user_service.dto.requests.CreateEmployeeDto;
+import rs.banka4.user_service.dto.requests.UpdateEmployeeDto;
 import rs.banka4.user_service.exceptions.*;
 import rs.banka4.user_service.mapper.BasicEmployeeMapper;
 import rs.banka4.user_service.mapper.EmployeeMapper;
@@ -65,7 +67,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         String accessToken = jwtUtil.generateToken(employee);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetailsService.loadUserByUsername(loginDto.email()));
+        String refreshToken = jwtUtil.generateRefreshToken(userDetailsService.loadUserByUsername(loginDto.email()), "employee");
 
         return ResponseEntity.ok(new LoginResponseDto(accessToken, refreshToken));
     }
