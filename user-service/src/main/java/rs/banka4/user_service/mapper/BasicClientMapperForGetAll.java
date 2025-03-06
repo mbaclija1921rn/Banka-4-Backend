@@ -1,6 +1,5 @@
 package rs.banka4.user_service.mapper;
 
-import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 import rs.banka4.user_service.dto.AccountDto;
 import rs.banka4.user_service.dto.ClientDto;
