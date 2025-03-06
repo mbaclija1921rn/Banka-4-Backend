@@ -1,5 +1,6 @@
 package rs.banka4.user_service.mapper;
 
+import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 import rs.banka4.user_service.dto.AccountDto;
 import rs.banka4.user_service.dto.ClientDto;
@@ -9,8 +10,7 @@ import rs.banka4.user_service.models.Client;
 import java.util.List;
 
 @Component
-public class BasicClientMapperForGetAll implements ClientMapper {
-    @Override
+public class BasicClientMapperForGetAll {
     public ClientDto toDto(Client client) {
         if (client == null) {
             return null;
@@ -32,15 +32,5 @@ public class BasicClientMapperForGetAll implements ClientMapper {
                 client.getAddress(),
                 client.getPrivileges(),
                 accountDtos);
-    }
-
-    @Override
-    public CreateClientDto toCreateDto(ClientDto dto) {
-        return null;
-    }
-
-    @Override
-    public Client toEntity(CreateClientDto dto) {
-        return null;
     }
 }
