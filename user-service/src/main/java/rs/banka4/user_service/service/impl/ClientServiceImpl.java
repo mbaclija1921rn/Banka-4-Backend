@@ -1,6 +1,7 @@
 package rs.banka4.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import rs.banka4.user_service.config.RabbitMqConfig;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreateClientDto;
 import rs.banka4.user_service.dto.requests.UpdateClientDto;
@@ -28,12 +30,12 @@ import rs.banka4.user_service.exceptions.IncorrectCredentials;
 import rs.banka4.user_service.exceptions.NotActivated;
 import rs.banka4.user_service.exceptions.NotAuthenticated;
 import rs.banka4.user_service.exceptions.NotFound;
-import rs.banka4.user_service.models.Privilege;
+import rs.banka4.user_service.exceptions.*;
+import rs.banka4.user_service.models.VerificationCode;
+import rs.banka4.user_service.repositories.EmployeeRepository;
 import rs.banka4.user_service.utils.JwtUtil;
-
-import java.time.LocalDate;
-import java.util.EnumSet;
-import java.util.List;
+import rs.banka4.user_service.utils.MessageHelper;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +45,9 @@ public class ClientServiceImpl implements ClientService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final VerificationCodeService verificationCodeService;
+    private final RabbitTemplate rabbitTemplate;
+    private final EmployeeRepository employeeRepository;
 
     @Override
     public ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email,
@@ -129,31 +134,81 @@ public class ClientServiceImpl implements ClientService {
         return ResponseEntity.ok(response);
 
     }
-
     @Override
     public ResponseEntity<ClientDto> getClient(String id) {
-        ClientDto clientDto = new ClientDto(
-                id,
-                "MockFirstName",
-                "MockLastName",
-                LocalDate.of(1985, 5, 20),
-                "Male",
-                "mock.email@example.com",
-                "987-654-3210",
-                "123 Mockingbird Lane",
-                EnumSet.noneOf(Privilege.class),
-                List.of()
-        );
-        return ResponseEntity.ok(clientDto);
+        var client = clientRepository.findById(id).orElseThrow(() -> new UserNotFound(id));;
+        return ResponseEntity.ok(clientMapper.toDto(client));
+    }
+
+    @Override
+    public ClientDto findClient(String id) {
+        var c =clientRepository.findById(id);
+        if(c.isEmpty()) throw  new ClientNotFound(id);
+
+        return clientMapper.toDto(c.get());
+    }
+
+    @Override
+    public Optional<Client> getClientByEmail(String email) {
+        return clientRepository.findByEmail(email);
     }
 
     @Override
     public ResponseEntity<Void> createClient(CreateClientDto createClientDto) {
+
+        if(clientRepository.existsByEmail(createClientDto.email())){
+            throw new DuplicateEmail(createClientDto.email());
+        }
+
+        var clnt = clientMapper.toEntity(createClientDto);
+
+        clientRepository.save(clnt);
+
+        sendVerificationEmailToClient(createClientDto.firstName(),createClientDto.email());
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Override
     public ResponseEntity<Void> updateClient(String id, UpdateClientDto updateClientDto) {
-        return null;
+        Optional<Client> clientOptional = clientRepository.findById(id);
+
+        if (clientOptional.isEmpty()) { // TODO: do no let other users edit other users
+            throw new ClientNotFound(id);
+        }
+
+        if (clientRepository.existsByEmail(updateClientDto.email()) || employeeRepository.existsByEmail(updateClientDto.email())) {
+            throw new DuplicateEmail(updateClientDto.email());
+        }
+
+        Client client = clientOptional.get();
+        client.setFirstName(updateClientDto.firstName());
+        client.setLastName(updateClientDto.lastName());
+        client.setDateOfBirth(updateClientDto.dateOfBirth());
+        client.setGender(updateClientDto.gender());
+        client.setEmail(updateClientDto.email());
+        client.setPhone(updateClientDto.phone());
+        client.setAddress(updateClientDto.address());
+        clientRepository.save(client);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    private void sendVerificationEmailToClient(String firstName, String email) {
+        VerificationCode verificationCode = verificationCodeService.createVerificationCode(email);
+
+        if (verificationCode == null || verificationCode.getCode() == null) {
+            throw new IllegalStateException("Failed to generate verification code for email: " + email);
+        }
+
+        NotificationTransferDto message = MessageHelper.createAccountActivationMessage(email,
+                firstName,
+                verificationCode.getCode());
+
+        rabbitTemplate.convertAndSend(
+                RabbitMqConfig.EXCHANGE_NAME,
+                RabbitMqConfig.ROUTING_KEY,
+                message
+        );
     }
 }

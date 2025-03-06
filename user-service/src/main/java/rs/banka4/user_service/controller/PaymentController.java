@@ -16,14 +16,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import rs.banka4.user_service.dto.*;
 import rs.banka4.user_service.dto.requests.CreatePaymentDto;
+import rs.banka4.user_service.dto.requests.CreateTransactionDto;
 import rs.banka4.user_service.service.abstraction.PaymentService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
-@RequestMapping("/payment")
+@RequestMapping("/transaction")
 @RequiredArgsConstructor
 @Tag(name = "PaymentController", description = "Endpoints for payments")
 public class PaymentController {
@@ -32,18 +32,36 @@ public class PaymentController {
 
     @Operation(
             summary = "Create a new Payment",
-            description = "Creates a new client with the provided details and a list of account details.",
+            description = "Creates a new payment with the provided details.",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
                     @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
             }
     )
-    @PostMapping
-    public ResponseEntity<PaymentDto> createPayment(
+    @PostMapping("/payment")
+    public ResponseEntity<TransactionDto> createPayment(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Details of the new client to create", required = true)
+            Authentication authentication,
             @RequestBody @Valid CreatePaymentDto createPaymentDto) {
-        return paymentService.createPayment(createPaymentDto);
+        return paymentService.createPayment(authentication, createPaymentDto);
+    }
+
+    @Operation(
+            summary = "Create a new Transfer",
+            description = "Creates a new transfer. The client can only transfer using their own account.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Successfully created new payment"),
+                    @ApiResponse(responseCode = "400", description = "Bad request - Invalid data")
+            }
+    )
+    @PostMapping("/transfer")
+    public ResponseEntity<TransactionDto> createTransfer(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Details of the new client to create", required = true)
+            Authentication authentication,
+            @RequestBody @Valid CreatePaymentDto createPaymentDto) {
+        return paymentService.createTransfer(authentication, createPaymentDto);
     }
 
     @Operation(
@@ -52,13 +70,13 @@ public class PaymentController {
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully retrieved payments",
-                            content = @Content(schema = @Schema(implementation = PaymentDto.class))),
+                            content = @Content(schema = @Schema(implementation = TransactionDto.class))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized - Token errors"),
                     @ApiResponse(responseCode = "403", description = "Forbidden - Access denied")
             }
     )
     @GetMapping("/search")
-    public ResponseEntity<Page<PaymentDto>> getPaymentsForClient(
+    public ResponseEntity<Page<TransactionDto>> getPaymentsForClient(
             Authentication auth,
             @RequestParam(required = false) @Parameter(description = "Payment status") PaymentStatus status,
             @RequestParam(required = false) @Parameter(description = "Payment amount") BigDecimal amount,
