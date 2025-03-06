@@ -14,7 +14,6 @@ import java.util.Set;
 )
 public interface ClientMapper {
     Client toEntity(CreateClientDto dto);
-    @Mapping(target = "accounts",ignore = true)
     ClientDto toDto(Client client);
 
     CreateClientDto toCreateDto(ClientDto dto);

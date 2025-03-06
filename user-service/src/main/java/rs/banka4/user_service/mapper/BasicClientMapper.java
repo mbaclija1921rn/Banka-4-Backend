@@ -16,18 +16,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class BasicClientMapper {
-
-    private final AccountMapper accountMapper;
-
-    public BasicClientMapper(AccountMapper accountMapper) {
-        this.accountMapper = accountMapper;
-    }
-
     public ClientDto entityToDto(Client client) {
         if (client == null) return null;
-        //empty for now as decided
         EnumSet<Privilege> set = EnumSet.noneOf(Privilege.class);
-        List<AccountDto> linkedAccounts = List.of(); // client.getLinkedAccounts();
         ClientDto dto = new ClientDto(
                 client.id,
                 client.firstName,
@@ -37,9 +28,7 @@ public class BasicClientMapper {
                 client.email,
                 client.phone,
                 client.address,
-                set,
-                client.getAccounts().stream().map(accountMapper::toDto).collect(Collectors.toSet()).stream().toList()
-        );
+                set);
         return dto;
     }
 }

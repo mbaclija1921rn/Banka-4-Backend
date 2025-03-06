@@ -65,8 +65,7 @@ public class GetSpecificClientTests {
                 "john.doe@example.com",
                 "12313",
                 "dasasd",
-                EnumSet.of(Privilege.SEARCH),
-                List.of()
+                EnumSet.of(Privilege.SEARCH)
         );
 
         when(clientRepository.findById("1")).thenReturn(Optional.of(clientEntity));

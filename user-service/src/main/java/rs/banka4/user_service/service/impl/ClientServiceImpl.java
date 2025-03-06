@@ -51,10 +51,9 @@ public class ClientServiceImpl implements ClientService {
     private final VerificationCodeService verificationCodeService;
     private final RabbitTemplate rabbitTemplate;
     private final EmployeeRepository employeeRepository;
-    private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
-    private final StandardServletMultipartResolver standardServletMultipartResolver;
     private final ContactMapper contactMapper;
     private final PasswordEncoder passwordEncoder;
+    private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
 
 
     @Override
@@ -92,6 +91,7 @@ public class ClientServiceImpl implements ClientService {
                 pageRequest.getPageSize(),
                 sort);
 
+        assert (basicClientMapperForGetAll != null);
         Page<Client> clients = clientRepository.findAll(combinator.build(), pageRequestWithSort);
         Page<ClientDto> dtos = clients.map(basicClientMapperForGetAll::toDto);
         return ResponseEntity.ok(dtos);

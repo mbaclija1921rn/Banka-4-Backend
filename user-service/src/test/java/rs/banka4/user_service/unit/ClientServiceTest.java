@@ -37,11 +37,13 @@ public class ClientServiceTest {
     @Mock
     private ClientRepository clientRepository;
 
+    @InjectMocks
+    private BasicClientMapperForGetAll basicClientMapperForGetAll;
 
     @InjectMocks
     private ClientServiceImpl clientService;
 
-    private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
+
     private Client client;
     private PageRequest pageRequest;
 
