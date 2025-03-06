@@ -53,7 +53,7 @@ public class ClientServiceImpl implements ClientService {
     private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
     private final StandardServletMultipartResolver standardServletMultipartResolver;
     private final ContactMapper contactMapper;
-    private final ClientMapper basicClientMapperForGetAll = new BasicClientMapperForGetAll();
+    private final BasicClientMapperForGetAll basicClientMapperForGetAll = new BasicClientMapperForGetAll();
     private final StandardServletMultipartResolver standardServletMultipartResolver;
 
     @Override
