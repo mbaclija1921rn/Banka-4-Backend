@@ -25,7 +25,9 @@ import rs.banka4.user_service.service.impl.ClientServiceImpl;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,6 +49,10 @@ public class ClientServiceTest {
     private Client client;
     private PageRequest pageRequest;
 
+    List<Client> sortedByEmail;
+    List<Client> sortedByName;
+    List<Client> sortedByLastName;
+
     @BeforeEach
     void setUp() {
         pageRequest = PageRequest.of(0, 10);
@@ -65,6 +71,39 @@ public class ClientServiceTest {
         client.setAddress("123 Grove Street, City, Country");
         client.setEnabled(true);
         client.setAccounts(new HashSet<Account>());
+        clientRepository.save(client);
+        Client client1 = client;
+
+        client = new Client();
+        client.setId("2");
+        client.setFirstName("Aleksa");
+        client.setLastName("Zubic");
+        client.setDateOfBirth(LocalDate.of(1990, 5, 15));
+        client.setGender("Male");
+        client.setEmail("azubic@example.com");
+        client.setPhone("+5554567890");
+        client.setAddress("124 Grove Street, City, Country");
+        client.setEnabled(true);
+        client.setAccounts(new HashSet<Account>());
+        clientRepository.save(client);
+        Client client2 = client;
+
+        client = new Client();
+        client.setId("2");
+        client.setFirstName("Zorana");
+        client.setLastName("Aleksic");
+        client.setDateOfBirth(LocalDate.of(1990, 5, 15));
+        client.setGender("Female");
+        client.setEmail("zaleksic@example.com");
+        client.setPhone("+6664567890");
+        client.setAddress("124 Grove Street, City, Country");
+        client.setEnabled(true);
+        client.setAccounts(new HashSet<Account>());
+        Client client3 = client;
+
+        sortedByEmail = List.of(client2, client1, client3);
+        sortedByName = List.of(client2, client1, client3);
+        sortedByLastName = List.of(client3, client1, client1);
 
         clientRepository.save(client);
     }
@@ -170,4 +209,71 @@ public class ClientServiceTest {
         assertEquals(0, response.getBody().getTotalElements());
         assertTrue(response.getBody().getContent().isEmpty());
     }
+
+    @Test
+    void testSortByEmail() {
+        Page<Client> clientPage = new PageImpl<>(sortedByEmail, pageRequest, 3);
+        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("email"));
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
+                .thenReturn(clientPage);
+
+        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
+
+        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, "email", pageRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(3, response.getBody().getTotalElements());
+        //ClientDto resultDto = response.getBody().getContent().get(0);
+        //assertEquals(expectedDto.email(), resultDto.email());
+        List<ClientDto> sortedDtosByEmail = sortedByEmail.stream()
+                .map(basicClientMapperForGetAll::toDto).toList();
+        assertEquals(response.getBody().getContent(), sortedDtosByEmail);
+    }
+
+    @Test
+    void testSortByFirstName() {
+        Page<Client> clientPage = new PageImpl<>(sortedByName, pageRequest, 3);
+        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("firstName"));
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
+                .thenReturn(clientPage);
+
+        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
+
+        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, "firstName", pageRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(3, response.getBody().getTotalElements());
+        //ClientDto resultDto = response.getBody().getContent().get(0);
+        //assertEquals(expectedDto.email(), resultDto.email());
+        List<ClientDto> sortedDtosName = sortedByName.stream()
+                .map(basicClientMapperForGetAll::toDto).toList();
+        assertEquals(response.getBody().getContent(), sortedDtosName);
+    }
+
+    @Test
+    void testSortByLastName() {
+        Page<Client> clientPage = new PageImpl<>(sortedByLastName, pageRequest, 3);
+        PageRequest pageRequestWithSort = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), Sort.by("lastName"));
+        when(clientRepository.findAll(ArgumentMatchers.<Specification<Client>>any(), eq(pageRequestWithSort)))
+                .thenReturn(clientPage);
+
+        ClientDto expectedDto = basicClientMapperForGetAll.toDto(client);
+
+        ResponseEntity<Page<ClientDto>> response = clientService.getAll(null, null, null, "lastName", pageRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(3, response.getBody().getTotalElements());
+        //ClientDto resultDto = response.getBody().getContent().get(0);
+        //assertEquals(expectedDto.email(), resultDto.email());
+        List<ClientDto> sortedDtosByLastName = sortedByLastName.stream()
+                .map(basicClientMapperForGetAll::toDto).toList();
+        assertEquals(response.getBody().getContent(), sortedDtosByLastName);
+    }
+
 }
