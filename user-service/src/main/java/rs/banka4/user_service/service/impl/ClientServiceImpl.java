@@ -57,7 +57,7 @@ public class ClientServiceImpl implements ClientService {
 
 
     @Override
-    public ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email,
+    public ResponseEntity<Page<ClientDto>> getAll(String firstName, String lastName, String email, String phone,
                                                   String sortBy, PageRequest pageRequest) {
         if (pageRequest == null) {
             throw new NullPageRequest();
@@ -73,6 +73,9 @@ public class ClientServiceImpl implements ClientService {
         }
         if (email != null && !email.isEmpty()) {
             combinator.and(ClientSpecification.hasEmail(email));
+        }
+        if (phone != null && !phone.isEmpty()) {
+            combinator.and(ClientSpecification.hasPhone(phone));
         }
 
         Sort sort;
@@ -91,7 +94,6 @@ public class ClientServiceImpl implements ClientService {
                 pageRequest.getPageSize(),
                 sort);
 
-        assert (basicClientMapperForGetAll != null);
         Page<Client> clients = clientRepository.findAll(combinator.build(), pageRequestWithSort);
         Page<ClientDto> dtos = clients.map(basicClientMapperForGetAll::toDto);
         return ResponseEntity.ok(dtos);
