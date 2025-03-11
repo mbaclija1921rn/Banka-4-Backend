@@ -9,10 +9,10 @@ from time import sleep, time
 import requests
 from flask import Blueprint, Flask, current_app, g, send_file
 
+
 __doc__ = "Exchange office rates caching API"
 __version__ = "0.1"
 
-exchanges_path = "./exchanges.json"
 currencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF"]
 
 root_bp = Blueprint("root", __name__)
@@ -97,7 +97,7 @@ def make_exchange_table(api_response):
         for currency, rate in neutral_rates.items()
     }
 
-    tmp_file = exchanges_path + ".tmp"
+    tmp_file = current_app.config.get('EXCHANGE_PATH') + ".tmp"
     with open(tmp_file, "w") as f:
         json.dump(
             {
@@ -110,11 +110,11 @@ def make_exchange_table(api_response):
             },
             f,
         )
-    os.replace(tmp_file, exchanges_path)
+    os.replace(tmp_file, current_app.config.get('EXCHANGE_PATH'))
 
 
 def is_old():
-    with open(exchanges_path) as f:
+    with open(current_app.config.get('EXCHANGE_PATH')) as f:
         table = json.load(f)
     return (
         time() - table["lastLocalUpdate"] > 2 * 60 * 60
@@ -126,7 +126,7 @@ def is_old():
 
 
 def should_remake():
-    return not os.path.exists(exchanges_path) or is_old()
+    return not os.path.exists(os.path.abspath(current_app.config.get('EXCHANGE_PATH'))) or is_old()
 
 
 @root_bp.get("/exchange-rate")
@@ -137,7 +137,11 @@ def get_exchange_table():
                 current_app.logger.info("remaking exchanges table")
                 make_exchange_table(call_exchanges_api())
                 current_app.logger.info("spent 1 api token (out of 1500 monthly)")
-    return send_file(exchanges_path)
+    
+    exchange_path = current_app.config.get('EXCHANGE_PATH')
+    if not os.path.isabs(exchange_path):
+        exchange_path = os.path.join(current_app.root_path, exchange_path)
+    return send_file(exchange_path)
 
 
 def create_app():
@@ -149,4 +153,4 @@ def create_app():
 
 
 if __name__ == "__main__":
-    app.run()
+    create_app().run()

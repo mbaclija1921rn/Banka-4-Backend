@@ -1,8 +1,8 @@
 import pytest
 
-
 def test_eur_buy_over_sell(app):
     with app.test_client() as client:
+        print(app.config.get('COMMISSION_RATE'))
         response = client.get("/exchange-rate")
         assert response.status_code == 200
         data = response.get_json()
